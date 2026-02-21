@@ -3,50 +3,45 @@ import numpy as np
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
-import xlsxwriter
 
-file_path = 'Titanic-Dataset.csv'
+titanic_path = 'Titanic-Dataset.csv'
+amazon_path = 'bestsellers with categories.csv'
+weather_path = 'Project 1 - Weather Dataset.csv'
 
-if os.path.exists(file_path):
-    df = pd.read_csv(file_path)
+if all(os.path.exists(p) for p in [titanic_path, amazon_path, weather_path]):
+    df_titanic = pd.read_csv(titanic_path)
+    df_amazon = pd.read_csv(amazon_path)
+    df_weather = pd.read_csv(weather_path)
 else:
     exit()
 
-df['Age'] = df['Age'].fillna(df['Age'].median())
+df_titanic['Age'] = df_titanic['Age'].fillna(df_titanic['Age'].median())
+df_titanic['Famille_Taille'] = df_titanic['SibSp'] + df_titanic['Parch'] + 1
+df_titanic['Sex'] = df_titanic['Sex'].map({'male': 'Masculin', 'female': 'Féminin'})
 
-Q1 = df['Fare'].quantile(0.25)
-Q3 = df['Fare'].quantile(0.75)
-IQR = Q3 - Q1
-limite_sup = Q3 + 1.5 * IQR
-
-df['Famille_Taille'] = df['SibSp'] + df['Parch'] + 1
-
-df['Sex'] = df['Sex'].map({'male': 'Masculin', 'female': 'Féminin'})
-
-df = df.rename(columns={
+df_titanic = df_titanic.rename(columns={
     'Survived': 'Survécu',
     'Pclass': 'Classe',
     'Name': 'Nom',
     'Sex': 'Sexe',
     'Age': 'Âge',
-    'Fare': 'Prix_Billet',
-    'Embarked': 'Port_Embarquement'
+    'Fare': 'Prix_Billet'
 })
 
-df.to_csv('titanic_clean.csv', index=False)
+amazon_stats = df_amazon.groupby('Genre')['Price'].agg(['mean', 'std']).reset_index()
+amazon_stats.columns = ['Genre', 'Prix_Moyen', 'Prix_EcartType']
 
-plt.figure(figsize=(10, 6))
-sns.boxplot(x=df['Prix_Billet'])
-plt.title('Détection des Outliers - Prix du Billet (Titanic)')
-plt.savefig('outliers_fare.png')
+df_amazon = pd.merge(df_amazon, amazon_stats, on='Genre', how='left')
+
+noms_unifies = pd.concat([df_titanic['Nom'], df_amazon['Name']], axis=0)
 
 try:
-    with pd.ExcelWriter('titanic_final.xlsx', engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name='Analyse_Titanic', index=False)
+    with pd.ExcelWriter('ETL_Final_Global.xlsx', engine='xlsxwriter') as writer:
+        df_titanic.to_excel(writer, sheet_name='Titanic', index=False)
+        df_amazon.to_excel(writer, sheet_name='Amazon', index=False)
+        df_weather.head(100).to_excel(writer, sheet_name='Weather', index=False)
         
-        workbook  = writer.book
-        worksheet = writer.sheets['Analyse_Titanic']
-
+        workbook = writer.book
         header_format = workbook.add_format({
             'bold': True,
             'font_color': 'white',
@@ -55,9 +50,10 @@ try:
             'align': 'center'
         })
 
-        for i, col in enumerate(df.columns):
-            column_len = max(df[col].astype(str).str.len().max(), len(col)) + 3
-            worksheet.set_column(i, i, column_len)
-            worksheet.write(0, i, col, header_format)
+        for sheet_name in writer.sheets:
+            worksheet = writer.sheets[sheet_name]
+            worksheet.set_column(0, 15, 20)
+            
+    print("Pipeline ETL multi-source termine")
 except Exception as e:
     print(e)

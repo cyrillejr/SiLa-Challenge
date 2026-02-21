@@ -1,0 +1,12 @@
+http://: Nom d’hôte incorrect.
+--2026-02-19 10:27:01--  http://raw.githubsercontent.com/mwaskom/seaborn-data/master/iris.csv
+Résolution de raw.githubsercontent.com (raw.githubsercontent.com)… 103.224.182.253
+Connexion à raw.githubsercontent.com (raw.githubsercontent.com)|103.224.182.253|:80… connecté.
+requête HTTP transmise, en attente de la réponse… 302 Found
+Emplacement : http://ww38.raw.githubsercontent.com/mwaskom/seaborn-data/master/iris.csv [suivant]
+--2026-02-19 10:27:03--  http://ww38.raw.githubsercontent.com/mwaskom/seaborn-data/master/iris.csv
+Résolution de ww38.raw.githubsercontent.com (ww38.raw.githubsercontent.com)… 185.53.179.200
+Connexion à ww38.raw.githubsercontent.com (ww38.raw.githubsercontent.com)|185.53.179.200|:80… connecté.
+requête HTTP transmise, en attente de la réponse… 403 Forbidden
+2026-02-19 10:27:05 erreur 403 : Forbidden.
+
